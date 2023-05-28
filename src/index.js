@@ -43,8 +43,13 @@ function onInputChange(e) {
       }
     })
     .catch(error => {
-      console.log(error);
-      Notiflix.Notify.failure('Oops, there is no country with that name');
+      if (error.message = '404') {
+        Notiflix.Notify.failure('Oops, there is no country with that name');
+      }
+      else {
+         Notiflix.Notify.failure(error.message);
+      }
+      
     });
 }
 
@@ -53,7 +58,7 @@ function renderCountryList(countries) {
   const markup = countries
     .map(
       country =>
-        `<li class="list"><img src="${country.flags.svg}" alt="A flag" width="40px"> <span>   ${country.name.common}</span></li>`
+        `<li class="list"><img src="${country.flags.svg}" alt="A flag" width="40px"> <span> ${country.name.common}</span></li>`
     )
     .join('');
   countryList.innerHTML = markup;
