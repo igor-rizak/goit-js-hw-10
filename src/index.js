@@ -60,6 +60,7 @@ function createListMarkup (data) {
         `<li><img src="${flags.png}" alt="${name.official}" width="60" height="40">${name.official}</li>`
     )
     .join('');
+
 };
 
 function createInfoMarkup (data) {
