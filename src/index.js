@@ -9,9 +9,11 @@ const searchEl = document.querySelector('#search-box');
 const countryInfo = document.querySelector('.country-info');
 const countryList = document.querySelector('.country-list');
 
-const cleanMarkup = reference => (reference.innerHTML = '');
+function cleanMarkup(reference) {
+  reference.innerHTML = '';
+}
 
-const inputHandler = element => {
+function inputHandler(element) {
   const textInput = element.target.value.trim();
 
   if (!textInput) {
@@ -32,13 +34,14 @@ const inputHandler = element => {
       renderMarkup(data);
     })
     .catch(error => {
+      console.log(error);
       cleanMarkup(countryList);
       cleanMarkup(countryInfo);
       Notify.failure('Oops, there is no country with that name');
     });
 };
 
-const renderMarkup = data => {
+function renderMarkup (data) {
   if (data.length === 1) {
     cleanMarkup(countryList);
     const markupInfo = createInfoMarkup(data);
@@ -50,7 +53,7 @@ const renderMarkup = data => {
   }
 };
 
-const createListMarkup = data => {
+function createListMarkup (data) {
   return data
     .map(
       ({ name, flags }) =>
@@ -59,7 +62,7 @@ const createListMarkup = data => {
     .join('');
 };
 
-const createInfoMarkup = data => {
+function createInfoMarkup (data) {
   return data.map(
     ({ name, capital, population, flags, languages }) =>
       `<img src="${flags.png}" alt="${name.official}" width="200" height="100">
@@ -67,6 +70,7 @@ const createInfoMarkup = data => {
       <p>Capital: ${capital}</p>
       <p>Population: ${population}</p>
       <p>Languages: ${Object.values(languages)}</p>`
+      
   );
 };
 
