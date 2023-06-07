@@ -1,88 +1,73 @@
-import { fetchCountries } from './JS/fetchCountries.js'
-import Notiflix from 'notiflix';
+import '../src/style.css';
 import debounce from 'lodash.debounce';
-
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import { fetchCountries } from './JS/fetchCountries';
 
 const DEBOUNCE_DELAY = 300;
 
-const searchQuery = document.querySelector('#search-box');
+const searchEl = document.querySelector('#search-box');
+const countryInfo = document.querySelector('.country-info');
 const countryList = document.querySelector('.country-list');
-const countryInfo = document.querySelector('.country-info'); 
 
-searchQuery.addEventListener('input', debounce(onInputChange, DEBOUNCE_DELAY))
+const cleanMarkup = reference => (reference.innerHTML = '');
 
-function onInputChange(e) {
-  const countryName = e.target.value.trim();
+const inputHandler = element => {
+  const textInput = element.target.value.trim();
 
-  if (!countryName) {
-    clearMarkup(countryList);
-    clearMarkup(countryInfo);
+  if (!textInput) {
+    cleanMarkup(countryList);
+    cleanMarkup(countryInfo);
     return;
   }
 
-
-  fetchCountries(countryName)
-    .then(json => {
-      console.log(json);
-      if (json.length > 10) {
-        clearMarkup(countryList);
-        clearMarkup(countryInfo);
-        Notiflix.Notify.info(
-          'Too many matches found. Please enter a more specific name.'
+  fetchCountries(textInput)
+    .then(data => {
+      console.log(data);
+      if (data.length > 10) {
+        Notify.info(
+          'Too many matches found. Please enter a more specific name'
         );
-      } else if (json.length >= 2 && json.length <= 10) {
-        fetchCountries(countryName).then(countries => {
-          clearMarkup(countryInfo);
-          renderCountryList(countries);
-        });
-      } else if (json.length === 1) {
-        fetchCountries(countryName).then(countries => {
-          clearMarkup(countryList);
-          renderCountryInfo(countries);
-        });
+        return;
       }
+      renderMarkup(data);
     })
     .catch(error => {
-      if (error.message = '404') {
-        Notiflix.Notify.failure('Oops, there is no country with that name');
-      }
-      else {
-         Notiflix.Notify.failure(error.message);
-      }
-      
+      cleanMarkup(countryList);
+      cleanMarkup(countryInfo);
+      Notify.failure('Oops, there is no country with that name');
     });
-}
+};
 
-// фунція для відображення списку країн
-function renderCountryList(countries) {
-  const markup = countries
+const renderMarkup = data => {
+  if (data.length === 1) {
+    cleanMarkup(countryList);
+    const markupInfo = createInfoMarkup(data);
+    countryInfo.innerHTML = markupInfo;
+  } else {
+    cleanMarkup(countryInfo);
+    const markupList = createListMarkup(data);
+    countryList.innerHTML = markupList;
+  }
+};
+
+const createListMarkup = data => {
+  return data
     .map(
-      country =>
-        `<li class="list"><img src="${country.flags.svg}" alt="A flag" width="40px"> <span> ${country.name.common}</span></li>`
+      ({ name, flags }) =>
+        `<li><img src="${flags.png}" alt="${name.official}" width="60" height="40">${name.official}</li>`
     )
     .join('');
-  countryList.innerHTML = markup;
-}
+};
 
-// фунція для відображення інформації про країн
-function renderCountryInfo(countries) {
-  const markup = countries
-    .map(
-      country =>
-        `<img src="${
-          country.flags.svg
-        }" alt="A flag" width="40px"></img><span>  ${country.name.common}</span>
-      <p><b>Capital:</b> ${country.capital}</p>
-      <p><b>Popuation:</b> ${country.population}</p>
-      <p><b>Languages:</b> ${Object.values(country.languages)}</p>`
-    )
-    .join('');
+const createInfoMarkup = data => {
+  return data.map(
+    ({ name, capital, population, flags, languages }) =>
+      `<img src="${flags.png}" alt="${name.official}" width="200" height="100">
+      <h1>${name.official}</h1>
+      <p>Capital: ${capital}</p>
+      <p>Population: ${population}</p>
+      <p>Languages: ${Object.values(languages)}</p>`
+  );
+};
 
-  countryInfo.innerHTML = markup;
-}
-
-
-function clearMarkup(domObject) {
-  domObject.innerHTML = '';
-}
-
+searchEl.addEventListener('input', debounce(inputHandler, DEBOUNCE_DELAY));
